@@ -4,10 +4,10 @@ const {
 
 const parseBoss = (text) => {
   if (bossSignUpRegExp.test(text)) {
-    const [, bossName] = bossSignUpRegExp.exec(text);
+    const [, name] = bossSignUpRegExp.exec(text);
 
     return {
-      bossName,
+      name,
     };
   }
   return null;

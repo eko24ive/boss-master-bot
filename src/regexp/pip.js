@@ -8,8 +8,9 @@ const classicStrengthRegExp = /💪Сила: (\d*)/;
 const classicPrecisionRegExp = /🎯Меткость: (\d*)/;
 const classicEnduranceRegExp = /🔋Выносливость: \d*\/(\d*)/;
 const classicHungerRegExp = /☠️Голод: ([\d]*)%/;
-const classicHealthRegExp = /❤️Здоровье: \d*\/(\d*)/;
+const classicHealthRegExp = /❤️Здоровье: (\d*)\/(\d*)/;
 const classicVerisonRegExp = /📟Пип-бой 3000 v(.+)/;
+const classicDistanceRegExp = /📍.+,\D+(\d*).+/;
 
 const simpleNameRegExp = /👤(.*)/;
 const simpleFactionRegExp = /👤.*\n├.*\n├(.*)/;
@@ -21,7 +22,8 @@ const simpleStrengthRegExp = /💪(\d+)/;
 const simplePrecisionRegExp = /🔫(\d+)/;
 const simpleEnduranceRegExp = /🔋\d*\/(\d+)/;
 const simpleHungerRegExp = /🍗(\d+)%/;
-const simpleHealthRegExp = /❤️\d*\/(\d+)/;
+const simpleHealthRegExp = /❤️(\d*)\/(\d+)/;
+const simpleDistanceRegExp = /\| 👣(\d*)\n├.+/;
 
 const classicPip = {
   contains: [
@@ -37,6 +39,7 @@ const classicPip = {
     classicHungerRegExp,
     classicHealthRegExp,
     classicVerisonRegExp,
+    classicDistanceRegExp,
   ],
   excludes: [
     simpleNameRegExp,
@@ -66,6 +69,7 @@ const simplePip = {
     simpleEnduranceRegExp,
     simpleHungerRegExp,
     simpleHealthRegExp,
+    simpleDistanceRegExp,
   ],
   excludes: [
     classicNameRegExp,
@@ -96,6 +100,7 @@ const regexps = {
   classicHungerRegExp,
   classicHealthRegExp,
   classicVerisonRegExp,
+  classicDistanceRegExp,
   simpleNameRegExp,
   simpleFactionRegExp,
   simpleCharismaRegExp,
@@ -107,6 +112,7 @@ const regexps = {
   simpleEnduranceRegExp,
   simpleHungerRegExp,
   simpleHealthRegExp,
+  simpleDistanceRegExp,
 };
 
 module.exports = {

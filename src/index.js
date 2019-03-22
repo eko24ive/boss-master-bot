@@ -13,13 +13,16 @@ const {
 } = require('./utils/matcher');
 const validateForwardDate = require('./utils/validateForwardDate');
 const getDump = require('./utils/getDump');
+const processForwards = require('./utils/processForwards');
+
 const bossSchema = require('./schemes/boss');
 
 const Boss = mongoose.model('Boss', bossSchema);
 
 mongoose.connect(process.env.MONGODB_URI);
 const bot = new TeleBot(process.env.BOT_TOKEN);
-let dumpFile;
+let dumpJsonFile;
+let dumpCsvFile;
 
 const dumpStatuses = {
   NOT_READY: 0,
@@ -28,24 +31,22 @@ const dumpStatuses = {
 
 const botState = { dumpStatus: dumpStatuses.NOT_READY };
 
-/*
-TODO: Update when parsing is ready
-
-
 setTimeout(() => {
   botState.dumpStatus = dumpStatuses.NOT_READY;
 
-  getDump(Boss, (dump) => {
-    dumpFile = Buffer.from(JSON.stringify(dump));
+  getDump(Boss, (jsonDumpFile, _dumpCsvFile) => {
+    dumpJsonFile = Buffer.from(JSON.stringify(jsonDumpFile));
+    dumpCsvFile = Buffer.from(_dumpCsvFile);
     botState.dumpStatus = dumpStatuses.READY;
   });
 }, 10000);
 
-getDump(Boss, (dump) => {
-  dumpFile = Buffer.from(JSON.stringify(dump));
+getDump(Boss, (jsonDumpFile, _dumpCsvFile) => {
+  dumpJsonFile = Buffer.from(JSON.stringify(jsonDumpFile));
+  dumpCsvFile = Buffer.from(_dumpCsvFile);
   botState.dumpStatus = dumpStatuses.READY;
 });
-*/
+
 
 const sessions = {};
 
@@ -72,8 +73,9 @@ const getState = (id) => {
 
 const setState = (id, state) => {
   if (getState(id) === null) {
-    sessions[id] = { state };
+    createSession(id);
   }
+
   sessions[id].state = state;
 };
 
@@ -90,30 +92,44 @@ const pushSessionData = (id, data) => {
 };
 
 const updateBosses = (msg, sessionData) => {
-  const dupes = 0;
+  let dupes = 0;
 
-  signUpMessage;
-  pip;
+  if (sessionData.length === 0) {
+    return msg.reply.text('Ты ебобо или да?! Ты мне ничего не скинул');
+  }
 
+  const processedForwards = processForwards(sessionData, msg);
 
-  /* async.forEach(sessionData, (iDungeon, next) => {
-    Dungeon.findOne({ name: iDungeon.name }).then((dungeon) => {
-      const isForwardDupe = dungeon.toJSON().forwards.some(({ stamp }) => stamp === iDungeon.stamp);
+  if (processedForwards.every(f => f.ignore)) {
+    return msg.reply.text('Форварды что ты мне скинул оказались сомнительными, мне нечего записывать в базу.');
+  }
 
-      if (!isForwardDupe) {
-        dungeon.forwards.push(iDungeon);
+  async.forEach(processedForwards, (iBoss, next) => {
+    Boss.findOne({ name: iBoss.name }).then((boss) => {
+      if (boss !== null) {
+        const isForwardDupe = boss.toJSON().forwards.some(({ stamp }) => stamp === iBoss.stamp);
 
-        dungeon.markModified('forwards');
+        if (!isForwardDupe) {
+          boss.forwards.push(iBoss.forwards);
+
+          boss.markModified('forwards');
+        } else {
+          dupes += 1;
+        }
+
+        boss.save(() => {
+          next();
+        });
       } else {
-        dupes += 1;
-      }
+        const newBoss = new Boss(iBoss);
 
-      dungeon.save(() => {
-        next();
-      });
+        newBoss.save(() => {
+          next();
+        });
+      }
     });
   }, () => {
-    const allDupes = dupes === dungeons.length;
+    const allDupes = dupes === processedForwards.length;
     const someDupes = dupes > 0;
     const someDupesReply = someDupes ? '\nБыли замечены дубликаты.' : '';
     if (allDupes) {
@@ -127,7 +143,9 @@ const updateBosses = (msg, sessionData) => {
     }
 
     createSession(msg.from.id);
-  }); */
+  });
+
+  return null;
 };
 
 bot.on(['/start', '/help'], (msg) => {
@@ -192,9 +210,13 @@ bot.on('text', (msg) => {
 
     case '💾 Скачать дамп': {
       if (botState.dumpStatus === dumpStatuses.READY) {
-        return msg.reply.file(dumpFile, {
+        msg.reply.file(dumpCsvFile, {
+          fileName: `bosses-${moment().format('DD-MM-YYYY')}.csv`,
+          // caption: 'Используй этот дамп на сайте https://eko24ive.github.io/bosses-browser/',
+        });
+        return msg.reply.file(dumpJsonFile, {
           fileName: `bosses-${moment().format('DD-MM-YYYY')}.json`,
-          caption: 'Используй этот дамп на сайте https://eko24ive.github.io/bosses-browser/',
+          // caption: 'Используй этот дамп на сайте https://eko24ive.github.io/bosses-browser/',
         });
       }
 
@@ -233,30 +255,33 @@ bot.on('forward', (msg) => {
       const parsedBossSignUp = {
         name,
         type: 'signUpMessage',
+        date: msg.forward_date,
       };
 
-      pushSessionData(msg.from.id, parsedBossSignUp);
+      return pushSessionData(msg.from.id, parsedBossSignUp);
     } if (regExpSetMatcher(msg.text, {
       regexpSet: pipRegexps.classicPip,
     })) {
       const pip = {
         ...parsePip(msg.text, true),
-        type: 'pip',
+        type: 'pipboy',
+        date: msg.forward_date,
       };
 
-      pushSessionData(msg.from.id, pip);
+      return pushSessionData(msg.from.id, pip);
     } if (regExpSetMatcher(msg.text, {
       regexpSet: pipRegexps.simplePip,
     })) {
       const pip = {
         ...parsePip(msg.text, false),
-        type: 'pip',
+        type: 'pipboy',
+        date: msg.forward_date,
       };
 
-      pushSessionData(msg.from.id, pip);
-    } else {
-      return msg.reply.text('Прости, но этот форвард меня не интересует :с');
+      return pushSessionData(msg.from.id, pip);
     }
+
+    return msg.reply.text('Прости, но этот форвард меня не интересует :с');
   }
 
   return msg.reply.text('Я принимаю форварды только в режиме "📨 Отправить пачку" !!!');
