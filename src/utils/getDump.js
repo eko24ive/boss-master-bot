@@ -40,20 +40,78 @@ module.exports = function getDump(Boss, cb) {
       }, () => {
         const bossesToArray = Object.keys(bossesToExport).map(name => bossesToExport[name]);
         const fields = [
-          'name',
-          'plainName',
-          'forwards.hpCurrent',
-          'forwards.hpMax',
-          'forwards.damage',
-          'forwards.armor',
-          'forwards.strength',
-          'forwards.precision',
-          'forwards.charisma',
-          'forwards.agility',
-          'forwards.endurance',
-          'forwards.time',
-          'forwards.unixTime',
-          'forwards.distance',
+          {
+            label: 'Имя',
+            value: 'name',
+            defaultValue: '???',
+          },
+          {
+            label: 'Имя (без эмоджи)',
+            value: 'plainName',
+            defaultValue: '???',
+          },
+
+          {
+            label: 'КМ',
+            value: 'forwards.distance',
+            defaultValue: '???',
+          },
+          {
+            label: 'Текущее ХП',
+            value: 'forwards.hpCurrent',
+            defaultValue: '???',
+          },
+          {
+            label: 'Урон',
+            value: 'forwards.damage',
+            defaultValue: '???',
+          },
+
+          {
+            label: 'Максимальное ХП',
+            value: 'forwards.hpMax',
+            defaultValue: '???',
+          },
+          {
+            label: 'Сила',
+            value: 'forwards.strength',
+            defaultValue: '???',
+          },
+          {
+            label: 'Ловкость',
+            value: 'forwards.agility',
+            defaultValue: '???',
+          },
+          {
+            label: 'Меткость',
+            value: 'forwards.precision',
+            defaultValue: '???',
+          },
+          {
+            label: 'Харизма',
+            value: 'forwards.charisma',
+            defaultValue: '???',
+          },
+          {
+            label: 'Броня',
+            value: 'forwards.armor',
+            defaultValue: '???',
+          },
+          {
+            label: 'Выносливость',
+            value: 'forwards.endurance',
+            defaultValue: '???',
+          },
+          {
+            label: 'Время форварда',
+            value: 'forwards.time',
+            defaultValue: '???',
+          },
+          {
+            label: 'Время форварда (UNIX)',
+            value: 'forwards.unixTime',
+            defaultValue: '???',
+          },
         ];
 
         const json2csvParser = new Json2csvParser({ fields, unwind: ['forwards'], unwindBlank: true });
