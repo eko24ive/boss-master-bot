@@ -93,6 +93,7 @@ const pushSessionData = (id, data) => {
 
 const updateBosses = (msg, sessionData) => {
   let dupes = 0;
+  let errorsText;
 
   if (sessionData.length === 0) {
     return msg.reply.text('Ты ебобо или да?! Ты мне ничего не скинул');
@@ -102,6 +103,10 @@ const updateBosses = (msg, sessionData) => {
 
   if (processedForwards.every(f => f.ignore)) {
     return msg.reply.text('Форварды что ты мне скинул оказались сомнительными, мне нечего записывать в базу.');
+  }
+
+  if (processedForwards.some(f => f.ignore)) {
+    errorsText = '\n\n<b>Похоже что я не смог обработать некоторые твои форварды</b>';
   }
 
   async.forEach(processedForwards, (iBoss, next) => {
@@ -137,7 +142,7 @@ const updateBosses = (msg, sessionData) => {
         replyMarkup: defaultKeyboard,
       });
     } else {
-      msg.reply.text(`Я успешно обработал информацию и сохранил ёё в базу${someDupesReply}`, {
+      msg.reply.text(`Я успешно обработал информацию и сохранил ёё в базу${someDupesReply}${errorsText}`, {
         replyMarkup: defaultKeyboard,
       });
     }
