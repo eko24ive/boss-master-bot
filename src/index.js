@@ -93,7 +93,7 @@ const pushSessionData = (id, data) => {
 
 const updateBosses = (msg, sessionData) => {
   let dupes = 0;
-  let errorsText;
+  let errorsText = '';
 
   if (sessionData.length === 0) {
     createSession(msg.from.id);
