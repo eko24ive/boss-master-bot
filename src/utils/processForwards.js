@@ -47,7 +47,7 @@ const processForwards = (forwards, msg) => {
   const groupedForwards = groupForwards(sortedForwards);
 
   const processedGroups = groupedForwards.map((group) => {
-    if (group.length === 0) {
+    if (group.length === 0 || group.length === 1) {
       return {
         ignore: true,
       };
