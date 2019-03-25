@@ -1,4 +1,4 @@
-## Dungeon Master Bot
+## Boss Master Bot
 This project contains source files of telegram bot ([@BossMasterRiBot](https://t.me/@BossMasterRiBot)) which helps to parse information about boss encounters from [@WastelandWars](https://t.me/@WastelandWarsBot)
 
 ### Prerequisites
