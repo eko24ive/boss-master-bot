@@ -16,6 +16,7 @@ const parseClassic = (text) => {
   const [, faction] = regexps.classicFactionRegExp.exec(text);
   const [, version] = regexps.classicVerisonRegExp.exec(text);
   const [fullDistanceOutput, distance] = regexps.classicDistanceRegExp.exec(text);
+  const [, id] = regexps.classicIdRegExp.exec(text);
 
   const data = {
     version,
@@ -32,6 +33,7 @@ const parseClassic = (text) => {
     agility,
     endurance,
     distance,
+    id,
     isInWasteland: isInWasteland(fullDistanceOutput),
   };
 

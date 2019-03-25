@@ -56,11 +56,17 @@ const processForwards = (forwards, msg) => {
     const pipsInGroup = group.filter(entry => entry.type === 'pipboy').length;
     const signupsInGroup = group.filter(entry => entry.type === 'signUpMessage').length;
 
-    if (pipsInGroup === 1 && signupsInGroup === 1) {
+    if (pipsInGroup >= 1 && signupsInGroup === 1) {
       const pip = group.find(entry => entry.type === 'pipboy');
       const signUp = group.find(entry => entry.type === 'signUpMessage');
 
       const distance = pip.isInWasteland ? pip.distance - 1 : pip.distance;
+
+      if (pip.id !== msg.from.id) {
+        return {
+          ignore: true,
+        };
+      }
 
       return {
         name: signUp.name,
