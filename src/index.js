@@ -106,7 +106,9 @@ const updateBosses = (msg, sessionData) => {
 
   if (processedForwards.every(f => f.ignore)) {
     createSession(msg.from.id);
-    return msg.reply.text('Форварды что ты мне скинул оказались сомнительными, мне нечего записывать в базу.');
+    return msg.reply.text('Форварды что ты мне скинул оказались сомнительными, мне нечего записывать в базу.', {
+      replyMarkup: defaultKeyboard,
+    });
   }
 
   if (processedForwards.some(f => f.ignore)) {
