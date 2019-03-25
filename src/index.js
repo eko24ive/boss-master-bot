@@ -96,7 +96,10 @@ const updateBosses = (msg, sessionData) => {
   let errorsText;
 
   if (sessionData.length === 0) {
-    return msg.reply.text('Ты ебобо или да?! Ты мне ничего не скинул');
+    createSession(msg.from.id);
+    return msg.reply.text('Окей, возвращаю тебя в главное меню.', {
+      replyMarkup: defaultKeyboard,
+    });
   }
 
   const processedForwards = processForwards(sessionData, msg);
