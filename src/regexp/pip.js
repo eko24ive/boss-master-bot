@@ -11,7 +11,6 @@ const classicHungerRegExp = /☠️Голод: ([\d]*)%/;
 const classicHealthRegExp = /❤️Здоровье: (\d*)\/(\d*)/;
 const classicVerisonRegExp = /📟Пип-бой 3000 v(.+)/;
 const classicDistanceRegExp = /📍.+,\D+(\d*).+/;
-const classicIdRegExp = /ID(\d*)/;
 
 const simpleNameRegExp = /👤(.*)/;
 const simpleFactionRegExp = /👤.*\n├.*\n├(.*)/;
@@ -41,7 +40,6 @@ const classicPip = {
     classicHealthRegExp,
     classicVerisonRegExp,
     classicDistanceRegExp,
-    classicIdRegExp,
   ],
   excludes: [
     simpleNameRegExp,
@@ -115,7 +113,6 @@ const regexps = {
   simpleHungerRegExp,
   simpleHealthRegExp,
   simpleDistanceRegExp,
-  classicIdRegExp,
 };
 
 module.exports = {

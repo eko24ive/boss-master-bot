@@ -62,12 +62,6 @@ const processForwards = (forwards, msg) => {
 
       const distance = pip.isInWasteland ? pip.distance - 1 : pip.distance;
 
-      if (pip.id !== msg.from.id) {
-        return {
-          ignore: true,
-        };
-      }
-
       return {
         name: signUp.name,
         forwards: {

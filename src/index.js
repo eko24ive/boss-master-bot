@@ -288,6 +288,16 @@ bot.on('forward', (msg) => {
       };
 
       return pushSessionData(msg.from.id, pip);
+    } if (regExpSetMatcher(msg.text, {
+      regexpSet: pipRegexps.simplePip,
+    })) {
+      const pip = {
+        ...parsePip(msg.text, false),
+        type: 'pipboy',
+        date: msg.forward_date,
+      };
+
+      return pushSessionData(msg.from.id, pip);
     }
 
     return msg.reply.text('Прости, но этот форвард меня не интересует :с');
