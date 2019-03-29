@@ -3,6 +3,7 @@ const TeleBot = require('telebot');
 const mongoose = require('mongoose');
 const async = require('async');
 const moment = require('moment');
+const encoding = require('encoding');
 
 const regexps = require('./regexp/regexp');
 const pipRegexps = require('./regexp/pip');
@@ -23,6 +24,7 @@ mongoose.connect(process.env.MONGODB_URI);
 const bot = new TeleBot(process.env.BOT_TOKEN);
 let dumpJsonFile;
 let dumpCsvFile;
+let dumpCsvFileRU;
 
 const dumpStatuses = {
   NOT_READY: 0,
@@ -37,6 +39,7 @@ setTimeout(() => {
   getDump(Boss, (jsonDumpFile, _dumpCsvFile) => {
     dumpJsonFile = Buffer.from(JSON.stringify(jsonDumpFile));
     dumpCsvFile = Buffer.from(_dumpCsvFile);
+    dumpCsvFileRU = encoding.convert(_dumpCsvFile, 'CP1251', 'UTF-8');
     botState.dumpStatus = dumpStatuses.READY;
   });
 }, 10000);
@@ -44,6 +47,7 @@ setTimeout(() => {
 getDump(Boss, (jsonDumpFile, _dumpCsvFile) => {
   dumpJsonFile = Buffer.from(JSON.stringify(jsonDumpFile));
   dumpCsvFile = Buffer.from(_dumpCsvFile);
+  dumpCsvFileRU = encoding.convert(_dumpCsvFile, 'CP1251', 'UTF-8');
   botState.dumpStatus = dumpStatuses.READY;
 });
 
@@ -93,22 +97,16 @@ const pushSessionData = (id, data) => {
 
 const updateBosses = (msg, sessionData) => {
   let dupes = 0;
-  let errorsText = '';
+  let errorsText;
 
   if (sessionData.length === 0) {
-    createSession(msg.from.id);
-    return msg.reply.text('Окей, возвращаю тебя в главное меню.', {
-      replyMarkup: defaultKeyboard,
-    });
+    return msg.reply.text('Ты ебобо или да?! Ты мне ничего не скинул');
   }
 
   const processedForwards = processForwards(sessionData, msg);
 
   if (processedForwards.every(f => f.ignore)) {
-    createSession(msg.from.id);
-    return msg.reply.text('Форварды что ты мне скинул оказались сомнительными, мне нечего записывать в базу.', {
-      replyMarkup: defaultKeyboard,
-    });
+    return msg.reply.text('Форварды что ты мне скинул оказались сомнительными, мне нечего записывать в базу.');
   }
 
   if (processedForwards.some(f => f.ignore)) {
@@ -162,15 +160,15 @@ const updateBosses = (msg, sessionData) => {
 bot.on(['/start', '/help'], (msg) => {
   createSession(msg.from.id);
 
-  return msg.reply.text(`Привет, я БАБа - «Бешенный Анализатор Боссов».
-Меня создали много тысяч лет назад, для того чтобы найти ответ на главный вопрос вселенной: какие статы и как влияют на встречи с ужасными и опасными Боссами, бродящими по пустошам.
+  return msg.reply.text(`Привет, я БАБа - «<b>Бешенный Анализатор Боссов</b>».
+Меня создали много тысячь лет назад. И всё для того что бы разгадать секрет газеток.
 
-Отправляй мне форвард встречи с боссом вместе со своим пипом и я их обработаю.
+Отправляй мне форвард записи на битву с боссом вместе со своим пипом и я их его обработаю.
 
 Связь с моим мастером (ему стоит сообщать о найденных багах) - @eko24
 Чат по исследованию пустоши - @RI_Agroprom
 
-Перед началом работы со мной рекомендую заглянуть в /faq`, {
+Перед началом работы со мной рекомендую заглянуть в /faq.`, {
     parseMode: 'html',
     webPreview: false,
     replyMarkup: defaultKeyboard,
@@ -182,7 +180,7 @@ bot.on('/faq', msg => msg.reply.text(`
 
 2. Бот выдаёт собранные данные в виде дампа. Дамп обновляется каждые 10 минут. Инструмент для просмотра дампа ещё находиться в разработке.
 
-3. Форвард встречи выглядит следующим образом:<code>
+3. Форвард записи на битву выглядит следующим образом:<code>
 ⚜️Боссы. Здесь происходит запись на охоту за сильнейшими созданиями Пустоши.
 
 Тобой недалеко от дороги был замечен
@@ -198,14 +196,9 @@ bot.on('text', (msg) => {
     case '📨 Отправить пачку':
       setState(msg.from.id, 'WAIT_FOR_FORWARDS');
 
-      return msg.reply.text(`Окей, жду твои форварды.
-Можешь скидывать любое количество форвардов с разных кругов!
-
-Разница во времени между пипом и встречей на босса не должна превышать 50 секунд.
-Ты должен скинуть как минимум один форвард встречи на босса и свой пип бой.
-В противном случае бот проигнорирует только ту пару встреча-пип которая не удовлетворяет это правило.
-
-Как закончишь - жми Стоп`, {
+      return msg.reply.text(`Окей, жду твои форварды. Как закончишь - жми Стоп.
+      Можешь скидывать любое количество форвардов с разных кругов!
+      <b>Разница между пипом и записью на босса не должна превышать 50 секунд</b>`, {
         parseMode: 'html',
         replyMarkup: bot.keyboard([
           ['Стоп'],
@@ -230,7 +223,11 @@ bot.on('text', (msg) => {
     case '💾 Скачать дамп': {
       if (botState.dumpStatus === dumpStatuses.READY) {
         msg.reply.file(dumpCsvFile, {
-          fileName: `bosses-${moment().format('DD-MM-YYYY')}.csv`,
+          fileName: `bosses-${moment().format('DD-MM-YYYY')}-UTF8.csv`,
+          // caption: 'Используй этот дамп на сайте https://eko24ive.github.io/bosses-browser/',
+        });
+        msg.reply.file(dumpCsvFileRU, {
+          fileName: `bosses-${moment().format('DD-MM-YYYY')}-CP1251.csv`,
           // caption: 'Используй этот дамп на сайте https://eko24ive.github.io/bosses-browser/',
         });
         return msg.reply.file(dumpJsonFile, {
