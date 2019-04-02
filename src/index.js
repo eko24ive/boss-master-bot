@@ -97,7 +97,7 @@ const pushSessionData = (id, data) => {
 
 const updateBosses = (msg, sessionData) => {
   let dupes = 0;
-  let errorsText;
+  let errorsText = '';
 
   if (sessionData.length === 0) {
     return msg.reply.text('Ты ебобо или да?! Ты мне ничего не скинул');
