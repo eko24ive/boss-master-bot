@@ -14,7 +14,7 @@ module.exports = function getDump(Boss, cb) {
         const boss = _boss.toJSON();
 
         if (bossesToExport[boss.name] === undefined) {
-          const filteredForwards = boss.forwards !== undefined
+          const filteredForwards = boss.forwards !== undefined && boss.forwards.every(Boolean)
             ? boss.forwards.map(({
               user,
               stamp,
